@@ -12,7 +12,7 @@ library(dplyr)
 library(psych)
 
 # Read data set
-df <- read.csv2('estudantes.csv')
+df <- read.csv2('students.csv')
 
 ### Exploratory data analysis
 head(df)
@@ -323,7 +323,7 @@ data_test$G22 <- data_test$G2^1.2
 # Linear model
 model7 <- lm(G3 ~ (absences2 * failures2) * (famrel2 + Medu) * (studytime + G22), data = data_train)
 
-# Summary of madel 6
+# Summary of model 6
 summary(model7)
 
 # Model prediction with the test data set

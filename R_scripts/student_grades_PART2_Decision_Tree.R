@@ -1,4 +1,4 @@
-setwd("~/Documents/learning/R_scripts")
+setwd("~/Documents/learning_Data_Science/R_scripts")
 getwd()
 
 # Problem: Predict student final grades (G3)
@@ -14,7 +14,7 @@ library(dplyr)
 library(ROSE)
 
 # Read data set
-df <- read.csv2('estudantes.csv', stringsAsFactors = T)
+df <- read.csv2('students.csv', stringsAsFactors = T)
 
 
 ### The exploratory data analysis was done in PART 1 with the Linear Model

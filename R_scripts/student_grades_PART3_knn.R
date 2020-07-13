@@ -13,7 +13,7 @@ library(caret)
 ?knn
 
 # Read data set
-df <- read.csv2('estudantes.csv', stringsAsFactors = F)
+df <- read.csv2('students.csv', stringsAsFactors = F)
 
 
 ### The exploratory data analysis was done in PART 1 with the Linear Model
@@ -137,6 +137,27 @@ CrossTable(x = data_test_labels, y = model_1, prop.chisq = FALSE)
 ################################################################################
 ################################################################################
 ################################################################################
-# Model 2 - KNN model
-#           as mais importantes no model 1 da part 1
+# Model 2 - KNN model dependent on the variables of the best simulation of PART1
 
+model_2 <- knn(train = data_train_num[c('absences', 'failures', 'famrel', 
+                                        'Medu', 'studytime', 'G2')],
+               test = data_test_num[c('absences', 'failures', 'famrel', 
+                                      'Medu', 'studytime', 'G2')],
+               cl = data_train_labels,
+               k = 10)
+model_2
+
+# Summary
+summary(model_2)
+
+# Confusion Matrix
+confusionMatrix(data_test$G3, model_2)
+
+
+################################################################################
+################################################################################
+################################################################################
+
+## Salving the train and test data set to work on the next step
+write.csv2(x = data_train, file = 'students_data_train.csv')
+write.csv2(x = data_test, file = 'students_data_test.csv')
