@@ -1,4 +1,4 @@
-setwd("~/Documents/Desktop/DSA/Big_Data_Analytics_com_R_e_Microsoft_Azure_Machine_Learning/Cap11_Machine_Learning_em_Linguagem_R")
+setwd("~/Documents/learning_Data_Science/R_scripts")
 getwd()
 
 # Problem: Predict student final grades (G3)
