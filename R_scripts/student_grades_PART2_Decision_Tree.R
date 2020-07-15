@@ -1,3 +1,6 @@
+# Removes all existing objects from the current workspace
+rm(list = ls())
+# Working directory 
 setwd("~/Documents/learning_Data_Science/R_scripts")
 getwd()
 
@@ -128,7 +131,7 @@ grades_count <- data_test %>%
 grades_count
 
 pred_count <- as.data.frame(predictions_1) %>%
-  count(Grade = predictions_1)
+count(Grade = predictions_1)
 pred_count
 
 grades <- rbind(grades_count, pred_count)

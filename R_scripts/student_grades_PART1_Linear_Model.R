@@ -215,7 +215,7 @@ data_test$G22 <- data_test$G2^1.2
 # Linear model
 model5 <- lm(G3 ~ G22 + absences2 * famrel2, data = data_train)
 
-# Summary of madel 5
+# Summary of model 5
 summary(model5)
 
 # Model prediction with the test data set
@@ -262,7 +262,7 @@ data_test$G22 <- data_test$G2^1.2
 # Linear model
 model6 <- lm(G3 ~ G22 * absences2 * famrel2 * failures2, data = data_train)
 
-# Summary of madel 6
+# Summary of model 6
 summary(model6)
 
 # Model prediction with the test data set

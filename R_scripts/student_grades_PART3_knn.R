@@ -1,3 +1,6 @@
+# Removes all existing objects from the current workspace
+rm(list = ls())
+# Working directory 
 setwd("~/Documents/learning_Data_Science/R_scripts")
 getwd()
 

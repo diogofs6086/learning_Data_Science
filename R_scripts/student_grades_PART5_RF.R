@@ -1,3 +1,6 @@
+# Removes all existing objects from the current workspace
+rm(list = ls())
+# Working directory 
 setwd("~/Documents/learning_Data_Science/R_scripts")
 getwd()
 
@@ -97,3 +100,5 @@ table(tree_pred_3, data_test$G3)
 ################################################################################
 ################################################################################
 ################################################################################
+
+### Conclusion: The Linear Model gives the results to predict G3.
