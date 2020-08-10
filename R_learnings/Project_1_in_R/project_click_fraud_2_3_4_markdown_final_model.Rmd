@@ -1,0 +1,213 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+% !TEX encoding = UTF-8 Unicode
+
+---
+title: "Predictions whether a user will download an app after clicking a mobile app advertisement - FINAL MODEL"
+author: "Diogo F. dos Santos"
+date: "August 10th, 2020"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### PART TWO ####
+
+This script got the main tidying lines of part one to tidy the full 
+training dataset, nominated train.csv.
+
+``` {r packages}
+# Removes all existing objects and packages from the current workspace
+rm(list = ls())
+# Working directory 
+setwd("~/Documents/learning_Data_Science/R_learnings/Project_1_in_R")
+# getwd()
+
+# Packages
+library(dplyr)
+library(data.table)
+library(caret)
+library(randomForest)
+library(DMwR)
+library(knitr)
+library(rmarkdown)
+```
+
+``` {r reading_and_tidyng_the_training_dataset}
+# Number of rows in the train dataset
+# The train dataset named train.csv can be found on the web site
+# https://www.kaggle.com/c/talkingdata-adtracking-fraud-detection/data
+n_rows <- fread(file = 'train.csv', header = T, select = 'is_attributed')
+n_rows <- nrow(n_rows)
+n_rows    # 184.903.890 rows
+gc()
+
+# Calculating the number of batches
+for (i in c(15:100)) {
+  if (n_rows%%i == 0) {
+    print(c(i, n_rows/i))
+  }
+}             # 15 seems better for my computer capacity
+rm(i)
+
+# Batches
+n = 15
+train_set <- data.frame(is_attributed = c(),
+                        app = c(),
+                        channel = c(),
+                        repetitions_fac = c(),
+                        app_fac = c())
+for (i in c(0:(n-1))) {
+  if (i == 0) {
+    # The train dataset named train.csv can be found on the web site
+    # https://www.kaggle.com/c/talkingdata-adtracking-fraud-detection/data
+    train <- fread(file = 'train.csv', header = T, 
+                  skip = n_rows/n*i, nrows = n_rows/n,
+                  select = c('is_attributed', 'ip', 'app', 'channel'))
+                 } else {
+    train <- fread(file = 'train.csv', header = F, 
+                   skip = n_rows/n*i, nrows = n_rows/n,
+                   select = c(8,1,2,5))
+    names(train) <- c('is_attributed', 'ip', 'app', 'channel')
+  }
+ 
+  # ip feature
+  # Repeated ips in order
+  n_dupl_ips <- train %>%
+    count(ip, wt = n(), name = 'repetitions') %>%
+    arrange(desc(repetitions))
+  
+  # Number of duplicate ips column
+  train <- left_join(train, n_dupl_ips, by = 'ip')
+  train$ip <- NULL
+  
+  # repetitions classes
+  train$repetitions_fac <- cut(train$repetitions,
+                               breaks = c(0,5,nrow(train)), 
+                               labels = c(1, 2))
+  train$repetitions <- NULL
+  
+  # app classes
+  train$app_fac <- cut(train$app,
+                       breaks = c(0, 3, 12, 18, nrow(train)),
+                       right = F, labels = c(1, 2, 3, 4))
+  
+  # is_attributed classes
+  train <- train %>%
+    mutate(is_attributed = factor(is_attributed, levels = c(1,0)))
+  head(train_set)
+  
+  # Balancing the target class
+  train <- SMOTE(is_attributed ~ ., data  = train)
+  
+  # Binding the train dataset
+  train_set <- rbind(train_set, train)
+  
+  rm(n_dupl_ips, train)
+  gc()
+  print(i)
+}
+
+# training data set dimension
+dim(train_set)
+
+# Number of downloads, indicated by "1"
+table(train_set$is_attributed) 
+
+# Features types
+str(train_set)
+```
+
+#### PART THREE ####
+
+In this part, the tidying training dataset was taken with the best model 
+acquired in part one to train the model, but the number of the trees of the 
+random forest model was reduced due to my notebook capacity.
+
+``` {r training_the_model}
+# Random forest model
+model15 <- randomForest(is_attributed ~ repetitions_fac * app +
+                          channel * app_fac,
+                        data = train_set, 
+                        ntree = 10,
+                        nodesize = 1)
+```
+
+#### PART FOUR ####
+
+In this part, the trained model was applied to the provided test dataset, 
+test.csv. Afterward, the predicted results were matched with the click_id 
+to produce the submission file.
+
+The test dataset is similar to the training dataset, with the following differences:
+click_id: reference for making predictions
+is_attributed: not included
+
+``` {r reading_and_tidyng_the_test_dataset}
+# Loading the test file
+# The test dataset named test.csv can be found on the web site
+# https://www.kaggle.com/c/talkingdata-adtracking-fraud-detection/data
+test_set <- fread(file = 'test.csv', header = T, 
+                  select = c('click_id', 'ip', 'app', 'channel'))
+
+# ip feature
+# Repeated ips in order
+n_dupl_ips <- test_set %>%
+  count(ip, wt = n(), name = 'repetitions') %>%
+  arrange(desc(repetitions))
+  
+# Number of duplicate ips column
+test_set <- left_join(test_set, n_dupl_ips, by = 'ip')
+test_set$ip <- NULL
+rm(n_dupl_ips)
+
+# repetitions classes
+test_set$repetitions_fac <- cut(test_set$repetitions,
+                                breaks = c(0,5,nrow(test_set)), 
+                                labels = c(1, 2))
+test_set$repetitions <- NULL
+
+# app classes
+test_set$app_fac <- cut(test_set$app,
+                        breaks = c(0, 3, 12, 18, nrow(test_set)),
+                        right = F, labels = c(1, 2, 3, 4))
+gc()
+```
+
+## Predictions of the machine learning model
+
+``` {r predictions}
+# Predictions using the model 15s
+predictions15 <- predict(model15, test_set, type = "prob")
+head(predictions15)
+```
+
+## The submission file with the calculated probabilities 
+
+``` {r submission_file}
+# for the is_attributed variable
+test_set_results <- data.frame(click_id = test_set$click_id, 
+                               is_attributed = predictions15[,1])
+head(test_set_results)
+dim(test_set_results)
+
+# Saving the submission file
+# write.csv(x = test_set_results, file = 'submission_file.csv', row.names = F)
+
+# Number yes (1) or no (0) is_attributed variable
+table(round(test_set_results[,2]))
+```
+
+# Cleaning the house
+rm(list = ls())
+gc()
+
+################################################################################
+
+# THE END
